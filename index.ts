@@ -10,32 +10,37 @@ function handlePreFlightRequest(): Response {
 
 async function handler(_req: Request): Promise<Response> {
   if (_req.method == "OPTIONS") {
-    return handlePreFlightRequest();
+    handlePreFlightRequest();
   }
 
-  // Récupérer word1 et word2 depuis les query params envoyés par le frontend
   const url = new URL(_req.url);
-  const word1 = url.searchParams.get("word1");
-  const word2 = url.searchParams.get("word2");
+  const word = url.searchParams.get("word");
 
-  // Vérifier que les deux mots sont présents
-  if (!word1 || !word2) {
-    return new Response(JSON.stringify({ error: "word1 et word2 sont requis" }), {
-      status: 400,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+  if (!word) {
+    return new Response(
+        JSON.stringify({
+          error: "Word query parameters is required",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "content-type",
+          },
+        }
+    );
   }
 
   const headers = new Headers();
   headers.append("Content-Type", "application/json");
 
   const similarityRequestBody = JSON.stringify({
-    word1: word1,
-    word2: word2,
+    word1: word,
+    word2: "chien",
   });
+
+  console.log(`Comparing user word "${word}" with target word "chien"`);
 
   const requestOptions = {
     method: "POST",
@@ -45,7 +50,12 @@ async function handler(_req: Request): Promise<Response> {
   };
 
   try {
-    const response = await fetch("https://word2vec.nicolasfley.fr/similarity", requestOptions);
+    const response = await fetch(
+        "https://word2vec.nicolasfley.fr/similarity",
+        requestOptions
+    );
+
+    console.log(response);
 
     if (!response.ok) {
       console.error(`Error: ${response.statusText}`);
@@ -60,8 +70,8 @@ async function handler(_req: Request): Promise<Response> {
     }
 
     const result = await response.json();
+    console.log("API result:", result);
 
-    console.log(result);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: {
