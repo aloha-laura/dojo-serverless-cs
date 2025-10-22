@@ -17,7 +17,7 @@ async function handler(_req: Request): Promise<Response> {
     body: similarityRequestBody,
     redirect: "follow",
   };
-
+//trigger deploy
   try {
     const response = await fetch("https://word2vec.nicolasfley.fr/similarity", requestOptions);
 
